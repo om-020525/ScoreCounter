@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starpath — Score Counter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Jost:wght@400;500;600&family=Zilla+Slab:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="mode-edit">
+
+<svg class="sprite" aria-hidden="true">
+  <symbol id="face-moon" viewBox="0 0 40 40">
+    <defs>
+      <radialGradient id="moonPlate" cx="35%" cy="28%" r="85%">
+        <stop offset="0" stop-color="#ffffff"/>
+        <stop offset="0.6" stop-color="#eceff7"/>
+        <stop offset="1" stop-color="#b9bfd2"/>
+      </radialGradient>
+      <linearGradient id="moonGold" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f7d989"/>
+        <stop offset="1" stop-color="#d9a12f"/>
+      </linearGradient>
+      <mask id="crescent">
+        <circle cx="20" cy="20" r="13" fill="#fff"/>
+        <circle cx="26.5" cy="16.5" r="11.5" fill="#000"/>
+      </mask>
+    </defs>
+    <circle cx="20" cy="20" r="19" fill="url(#moonPlate)"/>
+    <circle cx="20" cy="20" r="19" fill="none" stroke="rgba(120,126,150,.55)" stroke-width="1"/>
+    <circle cx="20" cy="20" r="13" fill="url(#moonGold)" mask="url(#crescent)"/>
+  </symbol>
+  <symbol id="face-sun" viewBox="0 0 40 40">
+    <defs>
+      <radialGradient id="sunPlate" cx="32%" cy="26%" r="90%">
+        <stop offset="0" stop-color="#3a3350"/>
+        <stop offset="0.55" stop-color="#1b1729"/>
+        <stop offset="1" stop-color="#0b0913"/>
+      </radialGradient>
+      <linearGradient id="sunGold" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#ffe9a8"/>
+        <stop offset="0.55" stop-color="#eab540"/>
+        <stop offset="1" stop-color="#c98b1c"/>
+      </linearGradient>
+    </defs>
+    <circle cx="20" cy="20" r="19" fill="url(#sunPlate)"/>
+    <circle cx="20" cy="20" r="19" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="1"/>
+    <polygon fill="url(#sunGold)" points="20,4 22.7,13.5 32,8 26.5,17.3 36,20 26.5,22.7 32,32 22.7,26.5 20,36 17.3,26.5 8,32 13.5,22.7 4,20 13.5,17.3 8,8 17.3,13.5"/>
+  </symbol>
+</svg>
+
+<div class="sky" aria-hidden="true">
+  <div class="stars"></div>
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+</div>
+
+<header class="topbar">
+  <div class="flank l"><button id="endFightBtn" class="edge left off">Surrender</button></div>
+  <div class="brand">
+    <h1 class="title"><span class="t-star">Star</span><span class="t-path">path</span></h1>
+    <p class="tagline">A 10 vs 10 Game</p>
+  </div>
+  <div class="flank r"><button id="nextBtn" class="edge right off"></button></div>
+  <div class="tools">
+    <button id="settingsBtn" class="icon-btn" title="Settings" aria-label="Settings"></button>
+    <button id="modeBtn" class="icon-btn accent" title="Start playing" aria-label="Start playing"></button>
+    <div id="settingsPanel" class="settings hidden">
+      <div class="settings-row">
+        <p class="settings-label">Turn order</p>
+        <div class="segmented" id="orderToggle">
+          <button data-order="fixed">Fixed</button>
+          <button data-order="auto">Auto</button>
+        </div>
+        <p class="settings-hint">Auto puts the coin holder first, then the rest by score.</p>
+      </div>
+      <div class="settings-row">
+        <p class="settings-label">Music</p>
+        <div class="segmented" id="musicToggle">
+          <button data-music="off">Off</button>
+          <button data-music="on">On</button>
+        </div>
+        <p class="settings-label vol"><span>Volume</span><span id="volValue">30%</span></p>
+        <input id="volume" class="slider" type="range" min="0" max="100" step="1" aria-label="Music volume">
+      </div>
+      <div class="settings-row">
+        <p class="settings-label">Announcements</p>
+        <div class="segmented" id="voiceToggle">
+          <button data-voice="off">Off</button>
+          <button data-voice="on">On</button>
+        </div>
+        <p class="settings-label vol"><span>Volume</span><span id="voiceValue">100%</span></p>
+        <input id="voiceVolume" class="slider" type="range" min="0" max="100" step="1" aria-label="Announcement volume">
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="statusbar">
+  <span id="roundLabel" class="round">Editing</span>
+  <span id="phaseLabel" class="phase hidden"></span>
+</div>
+
+<main class="stage">
+  <div class="stack">
+    <div id="list" class="list"></div>
+    <div id="adder" class="adder"></div>
+  </div>
+</main>
+
+<div id="overlay" class="overlay hidden">
+  <div class="verdict">
+    <div id="verdictCoin" class="coin big"></div>
+    <h2 id="verdictTitle"></h2>
+    <p id="verdictSub"></p>
+    <div class="verdict-actions">
+      <button data-act="rematch" class="btn primary">New Game</button>
+      <button data-act="toEdit" class="btn ghost">Edit Players</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti" class="confetti"></canvas>
+
+<script src="app.js"></script>
+</body>
+</html>
