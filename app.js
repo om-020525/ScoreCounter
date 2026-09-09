@@ -21,7 +21,9 @@ const ic = (paths, fill) =>
 const I = {
   play: ic('<path d="M7 4.5l13 7.5-13 7.5z" stroke="none"/>', "currentColor"),
   edit: ic('<path d="M12.5 20H21"/><path d="M16.8 3.7a2.1 2.1 0 013 3L7.4 19.1 3 20.3l1.2-4.4z"/>'),
-  gear: ic('<path d="M4 7.5h9M18.5 7.5H20M4 16.5h1.5M11 16.5h9"/><circle cx="15.5" cy="7.5" r="2.4"/><circle cx="8" cy="16.5" r="2.4"/>'),
+  gear: ic('<circle cx="12" cy="12" r="3.1"/><path d="M12 2.2h0a1.7 1.7 0 011.7 1.7v.6a1.7 1.7 0 001 1.55 1.7 1.7 0 001.87-.34l.42-.42a1.7 1.7 0 012.4 2.4l-.42.42a1.7 1.7 0 00-.34 1.87 1.7 1.7 0 001.55 1h.6a1.7 1.7 0 010 3.4h-.6a1.7 1.7 0 00-1.55 1 1.7 1.7 0 00.34 1.87l.42.42a1.7 1.7 0 01-2.4 2.4l-.42-.42a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1 1.55v.6a1.7 1.7 0 01-3.4 0v-.6a1.7 1.7 0 00-1-1.55 1.7 1.7 0 00-1.87.34l-.42.42a1.7 1.7 0 01-2.4-2.4l.42-.42a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.55-1h-.6a1.7 1.7 0 010-3.4h.6a1.7 1.7 0 001.55-1 1.7 1.7 0 00-.34-1.87l-.42-.42a1.7 1.7 0 012.4-2.4l.42.42a1.7 1.7 0 001.87.34h.05a1.7 1.7 0 001-1.55v-.6A1.7 1.7 0 0112 2.2z"/>'),
+  expand: ic('<path d="M8.5 3.5H5A1.5 1.5 0 003.5 5v3.5M15.5 3.5H19A1.5 1.5 0 0120.5 5v3.5M15.5 20.5H19A1.5 1.5 0 0020.5 19v-3.5M8.5 20.5H5A1.5 1.5 0 013.5 19v-3.5"/>'),
+  shrink: ic('<path d="M3.5 8.5H7A1.5 1.5 0 008.5 7V3.5M20.5 8.5H17A1.5 1.5 0 0115.5 7V3.5M20.5 15.5H17A1.5 1.5 0 0015.5 17v3.5M3.5 15.5H7A1.5 1.5 0 018.5 17v3.5"/>'),
   grip: ic('<circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/>', "currentColor"),
   check: ic('<path d="M20 6.5L9.5 17 4 11.5"/>'),
   cross: ic('<path d="M18 6L6 18M6 6l12 12"/>'),
@@ -56,6 +58,7 @@ const el = {
   phase: $("#phaseLabel"),
   round: $("#roundLabel"),
   mode: $("#modeBtn"),
+  full: $("#fullBtn"),
   settings: $("#settingsBtn"),
   panel: $("#settingsPanel"),
   order: $("#orderToggle"),
@@ -362,6 +365,29 @@ el.settings.addEventListener("click", () => {
   const open = el.panel.classList.toggle("hidden");
   el.settings.classList.toggle("on", !open);
 });
+
+const root = document.documentElement;
+const goFull = root.requestFullscreen || root.webkitRequestFullscreen;
+const leaveFull = document.exitFullscreen || document.webkitExitFullscreen;
+const isFull = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+
+function paintFull() {
+  const on = isFull();
+  const label = on ? "Exit full screen" : "Full screen";
+  el.full.classList.toggle("hidden", !goFull);
+  el.full.classList.toggle("on", on);
+  el.full.innerHTML = on ? I.shrink : I.expand;
+  el.full.title = label;
+  el.full.setAttribute("aria-label", label);
+}
+
+el.full.addEventListener("click", () => {
+  if (!goFull) return;
+  Promise.resolve(isFull() ? leaveFull.call(document) : goFull.call(root, { navigationUI: "hide" })).catch(() => {});
+});
+
+["fullscreenchange", "webkitfullscreenchange"].forEach((e) => document.addEventListener(e, paintFull));
+paintFull();
 
 const segmented = (host, apply) =>
   host.addEventListener("click", (e) => {
